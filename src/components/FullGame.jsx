@@ -13,6 +13,7 @@ import {
 
 /**
  * Streamlit app04.py mantığının React’e taşınmış, eğitim modlu tam sürümü.
+ * + Çocuk Modu (dil sadeleştirme, açıklamalar).
  */
 
 const initialSettings = config.initial_settings;
@@ -33,6 +34,9 @@ const clamp = (v, min = 0, max = 100) => Math.max(min, Math.min(max, v));
 
 export default function FullGame() {
   const allScenarioIds = useMemo(() => Object.keys(scenariosData), []);
+
+  const [mode, setMode] = useState("adult"); // adult | kids
+  const isKids = mode === "kids";
 
   const [screen, setScreen] = useState("start"); // start | tutorial | story | advisors | decision | immediate | delayed | report | end
   const [metrics, setMetrics] = useState(cloneMetrics);
@@ -133,7 +137,9 @@ export default function FullGame() {
       DURATION_MULTIPLIERS[duration] * FATIGUE_PER_DURATION[scope];
 
     if (securityChange > 15) {
-      addNews(`📈 GÜVENLİK ARTTI: '${action.name}' sonrası tehdit seviyesi düştü.`);
+      addNews(
+        `📈 GÜVENLİK ARTTI: '${action.name}' sonrası tehdit seviyesi düştü.`
+      );
     }
     if (freedomCost > 15) {
       addNews(
@@ -200,13 +206,16 @@ export default function FullGame() {
   if (screen === "start") {
     return (
       <div style={styles.wrapper}>
-        <HeaderSimple />
+        <HeaderSimple isKids={isKids} />
         <StartScreen
           allScenarioIds={allScenarioIds}
           selectedIds={selectedIds}
           setSelectedIds={setSelectedIds}
           onStart={() => startGame(false)}
           onStartTutorial={() => startGame(true)}
+          mode={mode}
+          setMode={setMode}
+          isKids={isKids}
         />
       </div>
     );
@@ -244,6 +253,7 @@ export default function FullGame() {
         scenario={currentScenario}
         index={currentIndex}
         total={crisisSequence.length}
+        isKids={isKids}
       />
 
       <div style={styles.mainRow}>
@@ -254,6 +264,7 @@ export default function FullGame() {
               budget={budget}
               hr={hr}
               onNext={() => setScreen("story")}
+              isKids={isKids}
             />
           )}
 
@@ -261,6 +272,7 @@ export default function FullGame() {
             <StoryScreen
               scenario={currentScenario}
               onNext={() => setScreen("advisors")}
+              isKids={isKids}
             />
           )}
 
@@ -269,6 +281,7 @@ export default function FullGame() {
               scenario={currentScenario}
               news={news}
               onNext={() => setScreen("decision")}
+              isKids={isKids}
             />
           )}
 
@@ -318,6 +331,7 @@ export default function FullGame() {
                 });
                 setScreen("immediate");
               }}
+              isKids={isKids}
             />
           )}
 
@@ -328,6 +342,7 @@ export default function FullGame() {
               metricsBefore={metricsBefore}
               metricsAfter={metrics}
               onNext={() => setScreen("delayed")}
+              isKids={isKids}
             />
           )}
 
@@ -337,6 +352,7 @@ export default function FullGame() {
               results={results}
               metrics={metrics}
               onNext={() => setScreen("report")}
+              isKids={isKids}
             />
           )}
 
@@ -346,6 +362,7 @@ export default function FullGame() {
               metricsAfter={metrics}
               results={results}
               onNext={goNextCrisisOrEnd}
+              isKids={isKids}
             />
           )}
 
@@ -356,13 +373,14 @@ export default function FullGame() {
               hr={hr}
               history={history}
               onRestart={resetGame}
+              isKids={isKids}
             />
           )}
         </div>
 
         <div style={styles.sideCard}>
-          <NewsTicker news={news} />
-          <MetricsPanel metrics={metrics} budget={budget} hr={hr} />
+          <NewsTicker news={news} isKids={isKids} />
+          <MetricsPanel metrics={metrics} budget={budget} hr={hr} isKids={isKids} />
         </div>
       </div>
     </div>
@@ -371,24 +389,30 @@ export default function FullGame() {
 
 /* ---------------------- Headerlar ---------------------- */
 
-function HeaderSimple() {
+function HeaderSimple({ isKids = false }) {
   return (
     <div style={styles.header}>
       <div style={styles.headerLeft}>
         <span style={styles.headerIcon}>🛡️</span>
         <div>
-          <div style={styles.headerTitle}>CIO Kriz Yönetimi Oyunu</div>
+          <div style={styles.headerTitle}>
+            {isKids ? "Kriz Oyunu: Ülkeni Koru" : "CIO Kriz Yönetimi Oyunu"}
+          </div>
           <div style={styles.headerSubtitle}>
-            Bilgi düzensizlikleri ve haklar arasında denge kur.
+            {isKids
+              ? "Güvenlik ile özgürlük arasında adil bir denge kur."
+              : "Bilgi düzensizlikleri ve haklar arasında denge kur."}
           </div>
         </div>
       </div>
-      <div style={styles.headerBadge}>Tam Sürüm (React)</div>
+      <div style={styles.headerBadge}>
+        {isKids ? "Çocuk Modu" : "Tam Sürüm (React)"}
+      </div>
     </div>
   );
 }
 
-function HeaderWithStatus({ scenario, index, total }) {
+function HeaderWithStatus({ scenario, index, total, isKids = false }) {
   return (
     <div style={styles.header}>
       <div style={styles.headerLeft}>
@@ -396,11 +420,15 @@ function HeaderWithStatus({ scenario, index, total }) {
         <div>
           <div style={styles.headerTitle}>{scenario.title}</div>
           <div style={styles.headerSubtitle}>
-            Kriz {index + 1} / {total || "?"}
+            {isKids
+              ? `Görev ${index + 1} / ${total || "?"}`
+              : `Kriz ${index + 1} / ${total || "?"}`}
           </div>
         </div>
       </div>
-      <div style={styles.headerBadge}>CIO Kriz Yönetimi</div>
+      <div style={styles.headerBadge}>
+        {isKids ? "Çocuk Modu" : "CIO Kriz Yönetimi"}
+      </div>
     </div>
   );
 }
@@ -413,6 +441,9 @@ function StartScreen({
   setSelectedIds,
   onStart,
   onStartTutorial,
+  mode,
+  setMode,
+  isKids,
 }) {
   const toggleId = (id) => {
     const next = new Set(selectedIds);
@@ -423,21 +454,45 @@ function StartScreen({
 
   return (
     <div style={styles.mainCard}>
-      <h2 style={styles.phaseTitle}>Hoş Geldin!</h2>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 6,
+        }}
+      >
+        <span style={{ fontSize: 12, color: "#9ca3af" }}>Profil seç:</span>
+        <Chip
+          label="Yetişkin"
+          active={mode === "adult"}
+          onClick={() => setMode("adult")}
+        />
+        <Chip
+          label="Çocuk (10–12)"
+          active={mode === "kids"}
+          onClick={() => setMode("kids")}
+        />
+      </div>
+
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Hoş Geldin, karar verici!" : "Hoş Geldin!"}
+      </h2>
       <p style={styles.storyText}>
-        Bu oyunda ... adasının bilgi şefisin. Deprem, yangın, salgın ve seçim
-        gibi krizlerde hem güvenliği sağlamak hem de ifade özgürlüğü ve
-        mahremiyeti korumak senin görevin.
+        {isKids
+          ? "Bu oyunda hayali bir ülkede kriz zamanlarında karar veren ekibin parçasısın. Deprem, yangın, salgın gibi durumlarda insanları korumaya çalışırken, onların konuşma ve gizlilik haklarına da saygı göstermen gerekiyor."
+          : "Bu oyunda ... adasının bilgi şefisin. Deprem, yangın, salgın ve seçim gibi krizlerde hem güvenliği sağlamak hem de ifade özgürlüğü ve mahremiyeti korumak senin görevin."}
       </p>
       <p style={styles.storyText}>
-        Her kriz kartında danışmanları dinleyecek, aksiyon kartlarından birini
-        seçecek ve kapsam, süre ile güvenceleri ayarlayacaksın. Seçimlerin;
-        güvenlik, özgürlük, kamu güveni, dayanıklılık, uyum yorgunluğu ile
-        bütçe ve insan kaynağını etkileyecek.
+        {isKids
+          ? "Her görevde önce ne olduğunu öğrenecek, sonra danışmanlardan fikir alacak ve sonunda bir karar vereceksin. Seçtiğin karar; güvenlik, özgürlük, insanların devlete güveni ve yorgunluk gibi göstergeleri değiştirecek."
+          : "Her kriz kartında danışmanları dinleyecek, aksiyon kartlarından birini seçecek ve kapsam, süre ile güvenceleri ayarlayacaksın. Seçimlerin; güvenlik, özgürlük, kamu güveni, dayanıklılık, uyum yorgunluğu ile bütçe ve insan kaynağını etkileyecek."}
       </p>
 
       <div style={{ marginTop: 12 }}>
-        <h3 style={styles.sideTitle}>Bu oyunda oynanacak krizler</h3>
+        <h3 style={styles.sideTitle}>
+          {isKids ? "Bu oyunda karşılaşacağın görevler" : "Bu oyunda oynanacak krizler"}
+        </h3>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {allScenarioIds.map((id) => (
             <label
@@ -484,7 +539,7 @@ function StartScreen({
   );
 }
 
-function TutorialScreen({ metrics, budget, hr, onNext }) {
+function TutorialScreen({ metrics, budget, hr, onNext, isKids = false }) {
   const [demoMetrics, setDemoMetrics] = useState({
     security: 50,
     freedom: 50,
@@ -515,12 +570,13 @@ function TutorialScreen({ metrics, budget, hr, onNext }) {
 
   return (
     <>
-      <h2 style={styles.phaseTitle}>Kısa Eğitim (Deneme Tur)</h2>
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Kısa Eğitim (Deneme Tur)" : "Kısa Eğitim (Deneme Tur)"}
+      </h2>
       <p style={styles.storyText}>
-        Oyunda her turda üç şeye bakacaksın: (1) Kriz kartının hikâyesi, (2)
-        Danışmanların önerileri, (3) Aksiyon kartı + kapsam, süre ve
-        güvenceler. Sağdaki panel, krizin ülkenin dengelerini nasıl etkilediğini
-        gösteriyor.
+        {isKids
+          ? "Her turda üç adım var: (1) Neler olduğunu anlatan hikâyeyi okuyorsun, (2) Danışmanların ne dediğini dinliyorsun, (3) Bir karar verip ayarlarını yapıyorsun. Sağdaki panelde ülkenin durumu değişiyor."
+          : "Oyunda her turda üç şeye bakacaksın: (1) Kriz kartının hikâyesi, (2) Danışmanların önerileri, (3) Aksiyon kartı + kapsam, süre ve güvenceler. Sağdaki panel, krizin ülkenin dengelerini nasıl etkilediğini gösteriyor."}
       </p>
 
       <div
@@ -532,37 +588,83 @@ function TutorialScreen({ metrics, budget, hr, onNext }) {
         }}
       >
         <div style={styles.advisorCard}>
-          <div style={styles.advisorName}>Gösterge Paneli</div>
+          <div style={styles.advisorName}>
+            {isKids ? "Göstergeler ne demek?" : "Gösterge Paneli"}
+          </div>
           <div style={styles.advisorText}>
-            <strong>Güvenlik</strong>, tehdidin ne kadar kontrol altında
-            olduğunu; <strong>Özgürlük</strong>, hak ve özgürlüklerin ne kadar
-            korunduğunu; <strong>Kamu Güveni</strong> ise vatandaşların
-            hükümete duyduğu güveni gösterir.{" "}
-            <strong>Dayanıklılık</strong>, gelecekteki krizlere hazırlığı;{" "}
-            <strong>Uyum yorgunluğu</strong> ise insanların sürekli yeni
-            kurallara uyma isteğinin ne kadar azaldığını anlatır.
+            {isKids ? (
+              <>
+                <strong>Güvenlik</strong> insanların ne kadar güvende olduğunu,
+                <strong> Özgürlük</strong> insanların ne kadar rahat konuşup
+                hareket edebildiğini gösterir.{" "}
+                <strong>Kamu güveni</strong>, insanların yönetenlere ne kadar
+                güvendiği; <strong>Dayanıklılık</strong>, gelecekteki
+                sorunlara ne kadar hazırlıklı olduğumuz;{" "}
+                <strong>Uyum yorgunluğu</strong> ise “Artık bu kadar kural
+                yeter!” hissini anlatır.
+              </>
+            ) : (
+              <>
+                <strong>Güvenlik</strong>, tehdidin ne kadar kontrol altında
+                olduğunu; <strong>Özgürlük</strong>, hak ve özgürlüklerin ne
+                kadar korunduğunu; <strong>Kamu Güveni</strong> ise
+                vatandaşların hükümete duyduğu güveni gösterir.{" "}
+                <strong>Dayanıklılık</strong>, gelecekteki krizlere hazırlığı;{" "}
+                <strong>Uyum yorgunluğu</strong> ise insanların sürekli yeni
+                kurallara uyma isteğinin ne kadar azaldığını anlatır.
+              </>
+            )}
           </div>
         </div>
 
         <div style={styles.advisorCard}>
-          <div style={styles.advisorName}>Aksiyon Kartı</div>
+          <div style={styles.advisorName}>
+            {isKids ? "Karar kartı" : "Aksiyon Kartı"}
+          </div>
           <div style={styles.advisorText}>
-            Her aksiyon kartının bir <strong>güvenlik etkisi</strong>, bir{" "}
-            <strong>özgürlük maliyeti</strong> ve{" "}
-            <strong>yan etki riski</strong> vardır. Kartı seçtikten sonra,{" "}
-            <strong>kapsam</strong> (hedefli/genel), <strong>süre</strong>{" "}
-            (kısa/orta/uzun) ve <strong>güvenceler</strong> (şeffaflık, itiraz
-            mekanizması, otomatik sona erdirme) ile orantılılığı ayarlarsın.
+            {isKids ? (
+              <>
+                Her karar kartının bir <strong>artısı</strong> ve bir{" "}
+                <strong>eksi</strong> var. Bazıları güvenliği çok artırır ama
+                özgürlükleri kısar; bazıları ise özgürlükleri korur ama
+                tehdidi biraz daha uzun süre taşır. Kartı seçtikten sonra{" "}
+                <strong>kapsam</strong>, <strong>süre</strong> ve{" "}
+                <strong>güvenceleri</strong> ayarlarsın.
+              </>
+            ) : (
+              <>
+                Her aksiyon kartının bir <strong>güvenlik etkisi</strong>, bir{" "}
+                <strong>özgürlük maliyeti</strong> ve{" "}
+                <strong>yan etki riski</strong> vardır. Kartı seçtikten sonra,{" "}
+                <strong>kapsam</strong> (hedefli/genel), <strong>süre</strong>{" "}
+                (kısa/orta/uzun) ve <strong>güvenceler</strong> (şeffaflık,
+                itiraz mekanizması, otomatik sona erdirme) ile orantılılığı
+                ayarlarsın.
+              </>
+            )}
           </div>
         </div>
 
         <div style={styles.advisorCard}>
-          <div style={styles.advisorName}>Kaynaklar</div>
+          <div style={styles.advisorName}>
+            {isKids ? "Para ve ekip" : "Kaynaklar"}
+          </div>
           <div style={styles.advisorText}>
-            Her politika <strong>bütçe</strong> ve{" "}
-            <strong>insan kaynağı</strong> tüketir. Kaynaklar çok düşerse bazı
-            turlarda hiç aksiyon alamazsın; bu da hem güvenlik hem de
-            meşruiyet açısından ağır bir maliyet yaratır.
+            {isKids ? (
+              <>
+                Her karar biraz <strong>para</strong> ve{" "}
+                <strong>ekip gücü</strong> harcar. Eğer elinde para ve ekip
+                kalmazsa, yeni krizlerde harekete geçemeyebilirsin. Bu da hem
+                güvenlik, hem de insanların devlete güveni için kötü olur.
+              </>
+            ) : (
+              <>
+                Her politika <strong>bütçe</strong> ve{" "}
+                <strong>insan kaynağı</strong> tüketir. Kaynaklar çok düşerse
+                bazı turlarda hiç aksiyon alamazsın; bu da hem güvenlik hem
+                de meşruiyet açısından ağır bir maliyet yaratır.
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -584,9 +686,9 @@ function TutorialScreen({ metrics, budget, hr, onNext }) {
             Kısa deneme: iki farklı kararın etkisini gör
           </div>
           <p style={{ ...styles.storyText, fontSize: 13 }}>
-            Aşağıdaki butonlardan birine basarak, güvenlik odaklı veya özgürlük
-            odaklı bir kararın göstergeleri nasıl değiştirdiğini deneyebilirsin.
-            Bu sadece eğitim amaçlı; gerçek oyundaki metriklerini etkilemez.
+            {isKids
+              ? "Aşağıdaki iki butondan birini seç. Güvenliği önceleyen ve özgürlüğü önceleyen kararların göstergeleri nasıl değiştirdiğini izle. Bu sadece deneme; gerçek oyundaki puanlarını etkilemez."
+              : "Aşağıdaki butonlardan birine basarak, güvenlik odaklı veya özgürlük odaklı bir kararın göstergeleri nasıl değiştirdiğini deneyebilirsin. Bu sadece eğitim amaçlı; gerçek oyundaki metriklerini etkilemez."}
           </p>
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <button
@@ -636,8 +738,9 @@ function TutorialScreen({ metrics, budget, hr, onNext }) {
       </div>
 
       <p style={{ ...styles.storyText, fontSize: 13, marginTop: 10 }}>
-        Hazırsan şimdi gerçek krizlere geçebilirsin. İlk krizde sadece arayüzü
-        tanımaya ve metriklerin nasıl oynadığını gözlemlemeye odaklan.
+        {isKids
+          ? "Hazırsan şimdi gerçek görevlere geçebilirsin. İlk turda sadece ekranı tanımaya ve çubukların nasıl değiştiğini fark etmeye odaklan."
+          : "Hazırsan şimdi gerçek krizlere geçebilirsin. İlk krizde sadece arayüzü tanımaya ve metriklerin nasıl oynadığını gözlemlemeye odaklan."}
       </p>
 
       <div style={styles.actionsRow}>
@@ -651,7 +754,7 @@ function TutorialScreen({ metrics, budget, hr, onNext }) {
 
 /* ---------------------- Story ---------------------- */
 
-function StoryScreen({ scenario, onNext }) {
+function StoryScreen({ scenario, onNext, isKids = false }) {
   const [reportPart, missionPart] = useMemo(() => {
     const marker = "**Görev**:";
     const idx = scenario.story.indexOf(marker);
@@ -664,7 +767,9 @@ function StoryScreen({ scenario, onNext }) {
 
   return (
     <>
-      <h2 style={styles.phaseTitle}>Durum Özeti</h2>
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Ne oluyor?" : "Durum Özeti"}
+      </h2>
       <p style={styles.storyText}>{reportPart}</p>
       {missionPart && (
         <div
@@ -676,13 +781,15 @@ function StoryScreen({ scenario, onNext }) {
             background: "#020617",
           }}
         >
-          <h3 style={{ margin: 0, fontSize: 15, color: "#f97316" }}>Görev</h3>
+          <h3 style={{ margin: 0, fontSize: 15, color: "#f97316" }}>
+            {isKids ? "Görevin" : "Görev"}
+          </h3>
           <p style={{ ...styles.storyText, marginTop: 6 }}>{missionPart}</p>
         </div>
       )}
       <div style={styles.actionsRow}>
         <button style={styles.primaryButton} onClick={onNext}>
-          Danışmanları dinle
+          {isKids ? "Danışmanları dinle" : "Danışmanları dinle"}
         </button>
       </div>
     </>
@@ -691,13 +798,16 @@ function StoryScreen({ scenario, onNext }) {
 
 /* ---------------------- Advisors ---------------------- */
 
-function AdvisorsScreen({ scenario, news, onNext }) {
+function AdvisorsScreen({ scenario, news, onNext, isKids = false }) {
   return (
     <>
-      <h2 style={styles.phaseTitle}>Danışman Görüşleri</h2>
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Danışmanların ne diyor?" : "Danışman Görüşleri"}
+      </h2>
       <p style={styles.storyText}>
-        Farklı danışmanlar sana farklı değerleri öne çıkaran çözümler sunuyor.
-        Sadece “güvenlik” değil, özgürlük ve meşruiyet maliyetini de düşün.
+        {isKids
+          ? "Burada farklı danışmanlardan fikirler duyacaksın. Kimisi güvenliği, kimisi özgürlüğü, kimisi de insanların devlete güvenmesini daha önemli bulabilir. Karar verirken hepsini düşün."
+          : "Farklı danışmanlar sana farklı değerleri öne çıkaran çözümler sunuyor. Sadece “güvenlik” değil, özgürlük ve meşruiyet maliyetini de düşün."}
       </p>
       <div style={styles.advisorsGrid}>
         {scenario.advisors.map((a, i) => (
@@ -708,11 +818,11 @@ function AdvisorsScreen({ scenario, news, onNext }) {
         ))}
       </div>
       <div style={{ marginTop: 12 }}>
-        <NewsTicker news={news} compact />
+        <NewsTicker news={news} compact isKids={isKids} />
       </div>
       <div style={styles.actionsRow}>
         <button style={styles.primaryButton} onClick={onNext}>
-          Karar aşamasına geç
+          {isKids ? "Karar ekranına geç" : "Karar aşamasına geç"}
         </button>
       </div>
     </>
@@ -728,6 +838,7 @@ function DecisionScreen({
   hr,
   onSkip,
   onApply,
+  isKids = false,
 }) {
   const [selectedId, setSelectedId] = useState(null);
   const [scope, setScope] = useState("targeted");
@@ -760,10 +871,13 @@ function DecisionScreen({
 
   return (
     <>
-      <h2 style={styles.phaseTitle}>Karar Paneli</h2>
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Karar zamanı" : "Karar Paneli"}
+      </h2>
       <p style={styles.storyText}>
-        Bütçe, insan kaynağı ve göstergeleri göz önüne alarak bir politika
-        seç. Kapsam, süre ve güvencelerle orantılılık düzeyini ayarlayabilirsin.
+        {isKids
+          ? "Şimdi bir karar kartı seçip ayarlarını yapacaksın. Bütçe, ekip gücü ve göstergeleri aklında tut. Amaç hem insanları korumak hem de haklara saygı göstermek."
+          : "Bütçe, insan kaynağı ve göstergeleri göz önüne alarak bir politika seç. Kapsam, süre ve güvencelerle orantılılık düzeyini ayarlayabilirsin."}
       </p>
 
       <div
@@ -776,25 +890,28 @@ function DecisionScreen({
           fontSize: 13,
         }}
       >
-        <strong>Kaynaklar:</strong> Bütçe: {budget.toFixed(0)} 💰 | İnsan
-        kaynağı: {hr.toFixed(0)} 👥
+        <strong>{isKids ? "Kaynak durumun:" : "Kaynaklar:"}</strong> Bütçe:{" "}
+        {budget.toFixed(0)} 💰 | İnsan kaynağı: {hr.toFixed(0)} 👥
       </div>
 
       {affordable.length === 0 ? (
         <>
           <p style={styles.storyText}>
-            Hiçbir kartı oynayacak kadar kaynağın kalmadı. Bu turu pas
-            geçersen göstergeler üzerinde ciddi olumsuz etki olacak.
+            {isKids
+              ? "Bu turda hiç kart oynayacak kadar paran ve ekibin kalmadı. Turu pas geçersen göstergeler kötüleşecek."
+              : "Hiçbir kartı oynayacak kadar kaynağın kalmadı. Bu turu pas geçersen göstergeler üzerinde ciddi olumsuz etki olacak."}
           </p>
           <div style={styles.actionsRow}>
             <button style={styles.primaryButton} onClick={onSkip}>
-              Turu atla (riskli)
+              {isKids ? "Turu atla (riskli)" : "Turu atla (riskli)"}
             </button>
           </div>
         </>
       ) : (
         <>
-          <h3 style={styles.sideTitle}>Aksiyon Kartları</h3>
+          <h3 style={styles.sideTitle}>
+            {isKids ? "Karar kartları" : "Aksiyon Kartları"}
+          </h3>
           <div style={styles.actionsGrid}>
             {scenario.action_cards.map((card) => {
               const canPlay = budget >= card.cost && hr >= card.hr_cost;
@@ -826,7 +943,7 @@ function DecisionScreen({
           {selectedId && (
             <>
               <h3 style={{ ...styles.sideTitle, marginTop: 12 }}>
-                Politika Ayarları
+                {isKids ? "Karar ayarların" : "Politika Ayarları"}
               </h3>
               <div
                 style={{
@@ -841,55 +958,61 @@ function DecisionScreen({
                 }}
               >
                 <div>
-                  <div style={{ marginBottom: 4 }}>Kapsam</div>
+                  <div style={{ marginBottom: 4 }}>
+                    {isKids ? "Kimler için?" : "Kapsam"}
+                  </div>
                   <div style={styles.chipRow}>
                     <Chip
-                      label="Hedefli"
+                      label={isKids ? "Sadece hedef grup" : "Hedefli"}
                       active={scope === "targeted"}
                       onClick={() => setScope("targeted")}
                     />
                     <Chip
-                      label="Genel"
+                      label={isKids ? "Herkes" : "Genel"}
                       active={scope === "general"}
                       onClick={() => setScope("general")}
                     />
                   </div>
                 </div>
                 <div>
-                  <div style={{ marginBottom: 4 }}>Süre</div>
+                  <div style={{ marginBottom: 4 }}>
+                    {isKids ? "Ne kadar süre?" : "Süre"}
+                  </div>
                   <div style={styles.chipRow}>
                     <Chip
-                      label="Kısa"
+                      label={isKids ? "Kısa süre" : "Kısa"}
                       active={duration === "short"}
                       onClick={() => setDuration("short")}
                     />
                     <Chip
-                      label="Orta"
+                      label={isKids ? "Orta" : "Orta"}
                       active={duration === "medium"}
                       onClick={() => setDuration("medium")}
                     />
                     <Chip
-                      label="Uzun"
+                      label={isKids ? "Uzun süre" : "Uzun"}
                       active={duration === "long"}
                       onClick={() => setDuration("long")}
                     />
                   </div>
                 </div>
                 <div>
-                  <div style={{ marginBottom: 4 }}>Güvenceler</div>
+                  <div style={{ marginBottom: 4 }}>
+                    {isKids ? "Güvence ekle" : "Güvenceler"}
+                  </div>
                   <div style={styles.chipRow}>
                     <Chip
-                      label="Şeffaflık raporu"
+                      label={isKids ? "Açıkça anlat" : "Şeffaflık raporu"}
                       active={safeguards.has("transparency")}
                       onClick={() => toggleSafeguard("transparency")}
                     />
                     <Chip
-                      label="İtiraz mekanizması"
+                      label={isKids ? "İtiraz hakkı" : "İtiraz mekanizması"}
                       active={safeguards.has("appeal")}
                       onClick={() => toggleSafeguard("appeal")}
                     />
                     <Chip
-                      label="Otomatik sona erdirme"
+                      label={isKids ? "Otomatik bitiş" : "Otomatik sona erdirme"}
                       active={safeguards.has("sunset")}
                       onClick={() => toggleSafeguard("sunset")}
                     />
@@ -899,7 +1022,7 @@ function DecisionScreen({
 
               <div style={styles.actionsRow}>
                 <button style={styles.primaryButton} onClick={handleApply}>
-                  Uygula
+                  {isKids ? "Kararı uygula" : "Uygula"}
                 </button>
               </div>
             </>
@@ -938,16 +1061,21 @@ function ImmediateScreen({
   metricsBefore,
   metricsAfter,
   onNext,
+  isKids = false,
 }) {
   const diff = (a, b) => (a - b).toFixed(1);
 
   const immediateText = results.skipped
-    ? "Kaynak yetersizliği nedeniyle hükümet krize etkin biçimde müdahale edemedi. Krizin etkileri derinleşti ve halk arasında ciddi kaygı oluştu."
+    ? isKids
+      ? "Bu turda hiçbir şey yapmadığın için kriz büyüdü. İnsanlar endişelendi ve devlete güvenleri azaldı."
+      : "Kaynak yetersizliği nedeniyle hükümet krize etkin biçimde müdahale edemedi. Krizin etkileri derinleşti ve halk arasında ciddi kaygı oluştu."
     : scenario.immediate_text.replace("{}", results.actionName || "");
 
   return (
     <>
-      <h2 style={styles.phaseTitle}>Anında Etkiler</h2>
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Hemen neler oldu?" : "Anında Etkiler"}
+      </h2>
       <p style={styles.storyText}>{immediateText}</p>
       <div style={styles.resultGrid}>
         <ResultLine
@@ -986,7 +1114,7 @@ function ImmediateScreen({
       </div>
       <div style={styles.actionsRow}>
         <button style={styles.primaryButton} onClick={onNext}>
-          Bir süre sonra...
+          {isKids ? "Bir süre sonra neler oldu?" : "Bir süre sonra..."}
         </button>
       </div>
     </>
@@ -1007,23 +1135,27 @@ function ResultLine({ label, before, after, diff }) {
 
 /* ---------------------- Delayed ---------------------- */
 
-function DelayedScreen({ scenario, results, metrics, onNext }) {
+function DelayedScreen({ scenario, results, metrics, onNext, isKids = false }) {
   const delayedText = results.skipped
-    ? "Eylemsizliğin uzun vadeli sonuçları ağır oldu. Toparlanma süreci yavaşladı, gelecekteki krizlere karşı ülkenin dayanıklılığı geriledi."
+    ? isKids
+      ? "Zaman geçtikçe hiçbir karar almamanın bedeli ağırlaştı. Kriz daha uzun sürdü ve ülke yeni sorunlara karşı daha savunmasız hale geldi."
+      : "Eylemsizliğin uzun vadeli sonuçları ağır oldu. Toparlanma süreci yavaşladı, gelecekteki krizlere karşı ülkenin dayanıklılığı geriledi."
     : scenario.delayed_text;
 
   return (
     <>
-      <h2 style={styles.phaseTitle}>Gecikmeli Etkiler</h2>
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Bir süre sonra neler değişti?" : "Gecikmeli Etkiler"}
+      </h2>
       <p style={styles.storyText}>{delayedText}</p>
       <p style={{ ...styles.storyText, fontSize: 13, marginTop: 10 }}>
-        Gecikmeli etkiler, özellikle dayanıklılık ve uyum yorgunluğu üzerinde
-        belirleyici oluyor. Uzun vadede güvenlik kazanımlarının kalıcı olması
-        için kamu güveni ve özgürlüklerin çok fazla aşınmaması gerekiyor.
+        {isKids
+          ? "Bazı etkiler hemen değil, zamanla ortaya çıkar. Özellikle dayanıklılık ve uyum yorgunluğu, uzun vadede ülkenin ne kadar hazırlıklı ve istekli olacağını belirler."
+          : "Gecikmeli etkiler, özellikle dayanıklılık ve uyum yorgunluğu üzerinde belirleyici oluyor. Uzun vadede güvenlik kazanımlarının kalıcı olması için kamu güveni ve özgürlüklerin çok fazla aşınmaması gerekiyor."}
       </p>
       <div style={styles.actionsRow}>
         <button style={styles.primaryButton} onClick={onNext}>
-          Kriz raporunu gör
+          {isKids ? "Görev raporunu gör" : "Kriz raporunu gör"}
         </button>
       </div>
     </>
@@ -1032,12 +1164,20 @@ function DelayedScreen({ scenario, results, metrics, onNext }) {
 
 /* ---------------------- Report ---------------------- */
 
-function ReportScreen({ metricsBefore, metricsAfter, results, onNext }) {
+function ReportScreen({
+  metricsBefore,
+  metricsAfter,
+  results,
+  onNext,
+  isKids = false,
+}) {
   const s = (v) => v.toFixed(1);
 
   return (
     <>
-      <h2 style={styles.phaseTitle}>Kriz Sonu Raporu</h2>
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Görev özeti" : "Kriz Sonu Raporu"}
+      </h2>
       <div
         style={{
           borderRadius: 10,
@@ -1047,7 +1187,9 @@ function ReportScreen({ metricsBefore, metricsAfter, results, onNext }) {
           marginBottom: 10,
         }}
       >
-        <h3 style={{ marginTop: 0, fontSize: 16 }}>Metrik Özeti</h3>
+        <h3 style={{ marginTop: 0, fontSize: 16 }}>
+          {isKids ? "Göstergelerdeki değişim" : "Metrik Özeti"}
+        </h3>
         <table style={{ width: "100%", fontSize: 13, borderSpacing: 0 }}>
           <thead>
             <tr>
@@ -1083,22 +1225,24 @@ function ReportScreen({ metricsBefore, metricsAfter, results, onNext }) {
           marginBottom: 10,
         }}
       >
-        <h3 style={{ marginTop: 0, fontSize: 16 }}>Karşı-olgu Analizi</h3>
+        <h3 style={{ marginTop: 0, fontSize: 16 }}>
+          {isKids ? "Başka nasıl olabilirdi?" : "Karşı-olgu Analizi"}
+        </h3>
         <p style={styles.storyText}>
           <i>{results.counter_factual}</i>
         </p>
         {results.safeguards && (
           <p style={{ ...styles.storyText, fontSize: 13 }}>
-            Seçtiğiniz{" "}
-            <strong>{results.safeguards.length} güvence</strong>, özgürlük
-            kaybını ve kamu güveni üzerindeki olumsuz etkiyi yumuşattı.
+            {isKids
+              ? `Eklediğin ${results.safeguards.length} güvence, özgürlük kaybını biraz yumuşattı ve insanların devlete güvenini korumaya yardım etti.`
+              : `Seçtiğiniz ${results.safeguards.length} güvence, özgürlük kaybını ve kamu güveni üzerindeki olumsuz etkiyi yumuşattı.`}
           </p>
         )}
       </div>
 
       <div style={styles.actionsRow}>
         <button style={styles.primaryButton} onClick={onNext}>
-          Sonraki krize geç
+          {isKids ? "Sonraki göreve geç" : "Sonraki krize geç"}
         </button>
       </div>
     </>
@@ -1107,29 +1251,40 @@ function ReportScreen({ metricsBefore, metricsAfter, results, onNext }) {
 
 /* ---------------------- End Screen + Grafik ---------------------- */
 
-function EndScreen({ metrics, budget, hr, history, onRestart }) {
+function EndScreen({
+  metrics,
+  budget,
+  hr,
+  history,
+  onRestart,
+  isKids = false,
+}) {
   const security = metrics.security;
   const freedom = metrics.freedom;
   const trust = metrics.public_trust;
 
   const leadershipScore = ((security + freedom + trust) / 3).toFixed(1);
 
-  let styleLabel = "Dengeli Stratejist";
-  let styleDesc =
-    "Güvenlik, özgürlük ve kamu güvenini birlikte gözetmeye çalıştın.";
+  let styleLabel = isKids ? "Denge Kurucu" : "Dengeli Stratejist";
+  let styleDesc = isKids
+    ? "Hem güvenliği hem özgürlükleri düşünmeye çalıştın. Farklı göstergeler arasındaki dengeye dikkat ettin."
+    : "Güvenlik, özgürlük ve kamu güvenini birlikte gözetmeye çalıştın.";
 
   if (security > 75 && freedom < 50) {
-    styleLabel = "Güvenlik Odaklı Taktisyen";
-    styleDesc =
-      "Kriz anlarında güvenliği önceledin; bu da özgürlükler ve meşruiyet üzerinde baskı yarattı.";
+    styleLabel = isKids ? "Güvenlik Kalkanı" : "Güvenlik Odaklı Taktisyen";
+    styleDesc = isKids
+      ? "İnsanları korumayı çok önemsedin ama bazen hak ve özgürlükler için fazla kısıtlama yaptın."
+      : "Kriz anlarında güvenliği önceledin; bu da özgürlükler ve meşruiyet üzerinde baskı yarattı.";
   } else if (freedom > 75 && security < 50) {
-    styleLabel = "Özgürlük Savunucusu";
-    styleDesc =
-      "Hak ve özgürlükleri korumaya odaklandın; bazı anlarda güvenlikten ödün verdin.";
+    styleLabel = isKids ? "Özgürlük Savunucusu" : "Özgürlük Savunucusu";
+    styleDesc = isKids
+      ? "Hak ve özgürlükleri korumaya çok önem verdin; bazı anlarda güvenlikten ödün verdin."
+      : "Hak ve özgürlükleri korumaya odaklandın; bazı anlarda güvenlikten ödün verdin.";
   } else if (trust > 70 && metrics.resilience > 60) {
-    styleLabel = "Toplum İnşa Eden Lider";
-    styleDesc =
-      "Kamu güveni ve dayanıklılığı artıran kararlar aldın; bu, uzun vadede demokratik istikrarı destekler.";
+    styleLabel = isKids ? "Güven Veren Lider" : "Toplum İnşa Eden Lider";
+    styleDesc = isKids
+      ? "İnsanların devlete güvenini ve ülkenin gelecekteki krizlere hazırlanmasını güçlendiren kararlar aldın."
+      : "Kamu güveni ve dayanıklılığı artıran kararlar aldın; bu, uzun vadede demokratik istikrarı destekler.";
   }
 
   const timelineData = useMemo(() => {
@@ -1150,12 +1305,16 @@ function EndScreen({ metrics, budget, hr, history, onRestart }) {
 
   return (
     <div style={styles.endMain}>
-      <h2 style={styles.phaseTitle}>Oyun Sonu</h2>
+      <h2 style={styles.phaseTitle}>
+        {isKids ? "Oyun özeti" : "Oyun Sonu"}
+      </h2>
       <p style={styles.storyText}>
-        Liderlik Skoru: <strong>{leadershipScore} / 100</strong>
+        {isKids ? "Liderlik Puanın: " : "Liderlik Skoru: "}
+        <strong>{leadershipScore} / 100</strong>
       </p>
       <p style={styles.storyText}>
-        Liderlik Tarzı: <strong>{styleLabel}</strong>
+        {isKids ? "Liderlik Tarzın: " : "Liderlik Tarzı: "}
+        <strong>{styleLabel}</strong>
       </p>
       <p style={styles.storyText}>{styleDesc}</p>
 
@@ -1229,14 +1388,14 @@ function EndScreen({ metrics, budget, hr, history, onRestart }) {
       </div>
 
       <p style={{ ...styles.storyText, fontSize: 12, marginTop: 8 }}>
-        Çizgi, her krizin başında ve sonunda güvenlik, özgürlük ve kamu
-        güveninin nasıl değiştiğini gösterir. Farklı oyunlarda bu deseni
-        karşılaştırarak liderlik tarzını tartışabilirsiniz.
+        {isKids
+          ? "Bu grafik, her görevde güvenlik, özgürlük ve insanların devlete güveninin nasıl değiştiğini gösteriyor. Birlikte tartışırken, hangi kararların bu çizgileri yukarı ya da aşağı çektiğini konuşabilirsiniz."
+          : "Çizgi, her krizin başında ve sonunda güvenlik, özgürlük ve kamu güveninin nasıl değiştiğini gösterir. Farklı oyunlarda bu deseni karşılaştırarak liderlik tarzını tartışabilirsiniz."}
       </p>
 
       <div style={styles.actionsRow}>
         <button style={styles.primaryButton} onClick={onRestart}>
-          Yeni oyun başlat
+          {isKids ? "Baştan oyna" : "Yeni oyun başlat"}
         </button>
       </div>
     </div>
@@ -1245,11 +1404,11 @@ function EndScreen({ metrics, budget, hr, history, onRestart }) {
 
 /* ---------------------- Panel ve News ---------------------- */
 
-function NewsTicker({ news, compact = false }) {
+function NewsTicker({ news, compact = false, isKids = false }) {
   return (
     <div style={compact ? styles.newsCompact : styles.newsBox}>
       <div style={{ fontSize: 12, color: "#a5b4fc", marginBottom: 4 }}>
-        Haber Akışı
+        {isKids ? "Haber akışı" : "Haber Akışı"}
       </div>
       {news.map((n, i) => (
         <div key={i} style={{ fontSize: 12, marginBottom: 2 }}>
@@ -1260,7 +1419,7 @@ function NewsTicker({ news, compact = false }) {
   );
 }
 
-function MetricsPanel({ metrics, budget, hr }) {
+function MetricsPanel({ metrics, budget, hr, isKids = false }) {
   const rows = [
     ["💰 Bütçe", budget, 100],
     ["👥 İnsan Kaynağı", hr, 50],
@@ -1272,7 +1431,9 @@ function MetricsPanel({ metrics, budget, hr }) {
   ];
   return (
     <div style={{ marginTop: 10 }}>
-      <h3 style={styles.sideTitle}>Gösterge Paneli</h3>
+      <h3 style={styles.sideTitle}>
+        {isKids ? "Ülke durumu" : "Gösterge Paneli"}
+      </h3>
       {rows.map(([label, value, max]) => {
         const ratio = clamp(value / max, 0, 1);
         return (
@@ -1299,9 +1460,9 @@ function MetricsPanel({ metrics, budget, hr }) {
         );
       })}
       <p style={{ ...styles.storyText, fontSize: 11, marginTop: 6 }}>
-        Uyum yorgunluğu 50’yi geçtiğinde meşruiyet krizi riski artar. Güvenlik
-        kazanımlarını korumak için kamu güveni ve özgürlükleri de gözetmek
-        gerekir.
+        {isKids
+          ? "Uyum yorgunluğu 50’yi geçerse insanlar ‘Yeter artık!’ demeye başlar ve yeni kurallara uymak istemez. Güvenliği korurken insanların sabrını da düşünmek gerekir."
+          : "Uyum yorgunluğu 50’yi geçtiğinde meşruiyet krizi riski artar. Güvenlik kazanımlarını korumak için kamu güveni ve özgürlükleri de gözetmek gerekir."}
       </p>
     </div>
   );
