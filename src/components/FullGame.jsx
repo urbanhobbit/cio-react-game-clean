@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
-import scenariosData from "../data/scenarios.json";
+import React, { useState, useMemo, useEffect } from "react";
+import parentScenarios from "../data/scenarios_parent.json";
+import childScenarios from "../data/scenarios_child.json";
 import config from "../data/config.json";
 import {
   LineChart,
@@ -10,11 +11,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-/**
- * Streamlit app04.py mantığının React’e taşınmış, eğitim modlu tam sürümü.
- * + Çocuk Modu (dil sadeleştirme, açıklamalar).
- */
 
 const initialSettings = config.initial_settings;
 const balance = config.game_balance;
@@ -33,10 +29,21 @@ const shuffle = (arr) => {
 const clamp = (v, min = 0, max = 100) => Math.max(min, Math.min(max, v));
 
 export default function FullGame() {
-  const allScenarioIds = useMemo(() => Object.keys(scenariosData), []);
-
-  const [mode, setMode] = useState("adult"); // adult | kids
+  // adult | kids
+  const [mode, setMode] = useState("adult");
   const isKids = mode === "kids";
+
+  // Mod’a göre hangi JSON kullanılacak?
+  const scenariosData = useMemo(
+    () => (isKids ? childScenarios : parentScenarios),
+    [isKids]
+  );
+
+  // Seçilen JSON’daki tüm senaryo ID’leri
+  const allScenarioIds = useMemo(
+    () => Object.keys(scenariosData),
+    [scenariosData]
+  );
 
   const [screen, setScreen] = useState("start"); // start | tutorial | story | advisors | decision | immediate | delayed | report | end
   const [metrics, setMetrics] = useState(cloneMetrics);
@@ -76,8 +83,30 @@ export default function FullGame() {
     setHistory([cloneMetrics()]);
     setDecision({});
     setResults(null);
-    setSelectedIds(new Set(allScenarioIds));
+    setSelectedIds(new Set(allScenarioIds)); // mevcut moda göre senaryolar
   };
+
+  // Mod değişince: senaryo listesi ve oyun state’i sıfırlansın
+  useEffect(() => {
+    const freshIds = new Set(Object.keys(scenariosData));
+    setSelectedIds(freshIds);
+
+    setScreen("start");
+    setMetrics(cloneMetrics());
+    setBudget(initialSettings.budget);
+    setHr(initialSettings.hr);
+    setCrisisSequence([]);
+    setCurrentIndex(0);
+    setSelectedScenarioId(null);
+    setNews([
+      isKids
+        ? "Oyun çocuk modu ile yeniden başlatıldı. Ülke durumu stabil."
+        : "Oyun yetişkin modu ile yeniden başlatıldı. Ülke durumu stabil.",
+    ]);
+    setHistory([cloneMetrics()]);
+    setDecision({});
+    setResults(null);
+  }, [mode, scenariosData, isKids]);
 
   // withTutorial = true → önce eğitim, sonra ilk krizin story ekranı
   const startGame = (withTutorial = false) => {
@@ -203,10 +232,11 @@ export default function FullGame() {
     };
   };
 
+  // START EKRANI
   if (screen === "start") {
     return (
       <div style={styles.wrapper}>
-        <HeaderSimple isKids={isKids} />
+        <HeaderSimple isKids={isKids} onRestart={resetGame} />
         <StartScreen
           allScenarioIds={allScenarioIds}
           selectedIds={selectedIds}
@@ -216,6 +246,7 @@ export default function FullGame() {
           mode={mode}
           setMode={setMode}
           isKids={isKids}
+          scenariosData={scenariosData}
         />
       </div>
     );
@@ -254,6 +285,7 @@ export default function FullGame() {
         index={currentIndex}
         total={crisisSequence.length}
         isKids={isKids}
+        onRestart={resetGame}
       />
 
       <div style={styles.mainRow}>
@@ -379,8 +411,12 @@ export default function FullGame() {
         </div>
 
         <div style={styles.sideCard}>
-          <NewsTicker news={news} isKids={isKids} />
-          <MetricsPanel metrics={metrics} budget={budget} hr={hr} isKids={isKids} />
+          <MetricsPanel
+            metrics={metrics}
+            budget={budget}
+            hr={hr}
+            isKids={isKids}
+          />
         </div>
       </div>
     </div>
@@ -389,7 +425,7 @@ export default function FullGame() {
 
 /* ---------------------- Headerlar ---------------------- */
 
-function HeaderSimple({ isKids = false }) {
+function HeaderSimple({ isKids = false, onRestart }) {
   return (
     <div style={styles.header}>
       <div style={styles.headerLeft}>
@@ -405,14 +441,31 @@ function HeaderSimple({ isKids = false }) {
           </div>
         </div>
       </div>
-      <div style={styles.headerBadge}>
-        {isKids ? "Çocuk Modu" : "Tam Sürüm (React)"}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={styles.headerBadge}>
+          {isKids ? "Çocuk Modu" : "Tam Sürüm (React)"}
+        </div>
+        {onRestart && (
+          <button
+            type="button"
+            onClick={onRestart}
+            style={styles.headerRestartButton}
+          >
+            Baştan Başla
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function HeaderWithStatus({ scenario, index, total, isKids = false }) {
+function HeaderWithStatus({
+  scenario,
+  index,
+  total,
+  isKids = false,
+  onRestart,
+}) {
   return (
     <div style={styles.header}>
       <div style={styles.headerLeft}>
@@ -426,8 +479,19 @@ function HeaderWithStatus({ scenario, index, total, isKids = false }) {
           </div>
         </div>
       </div>
-      <div style={styles.headerBadge}>
-        {isKids ? "Çocuk Modu" : "CIO Kriz Yönetimi"}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={styles.headerBadge}>
+          {isKids ? "Çocuk Modu" : "CIO Kriz Yönetimi"}
+        </div>
+        {onRestart && (
+          <button
+            type="button"
+            onClick={onRestart}
+            style={styles.headerRestartButton}
+          >
+            Baştan Başla
+          </button>
+        )}
       </div>
     </div>
   );
@@ -444,6 +508,7 @@ function StartScreen({
   mode,
   setMode,
   isKids,
+  scenariosData,
 }) {
   const toggleId = (id) => {
     const next = new Set(selectedIds);
@@ -481,7 +546,7 @@ function StartScreen({
       <p style={styles.storyText}>
         {isKids
           ? "Bu oyunda hayali bir ülkede kriz zamanlarında karar veren ekibin parçasısın. Deprem, yangın, salgın gibi durumlarda insanları korumaya çalışırken, onların konuşma ve gizlilik haklarına da saygı göstermen gerekiyor."
-          : "Bu oyunda ... adasının bilgi şefisin. Deprem, yangın, salgın ve seçim gibi krizlerde hem güvenliği sağlamak hem de ifade özgürlüğü ve mahremiyeti korumak senin görevin."}
+          : "Bu oyunda bir ada ülkesinin kriz anlarında bilgi ve politika kararlarını veren ekibin parçasısın. Deprem, yangın, salgın ve seçim gibi krizlerde hem güvenliği sağlamak hem de ifade özgürlüğü ve mahremiyeti korumak senin görevin."}
       </p>
       <p style={styles.storyText}>
         {isKids
@@ -539,7 +604,7 @@ function StartScreen({
   );
 }
 
-function TutorialScreen({ metrics, budget, hr, onNext, isKids = false }) {
+function TutorialScreen({ onNext, isKids = false }) {
   const [demoMetrics, setDemoMetrics] = useState({
     security: 50,
     freedom: 50,
@@ -833,7 +898,6 @@ function AdvisorsScreen({ scenario, news, onNext, isKids = false }) {
 
 function DecisionScreen({
   scenario,
-  metrics,
   budget,
   hr,
   onSkip,
@@ -1135,7 +1199,7 @@ function ResultLine({ label, before, after, diff }) {
 
 /* ---------------------- Delayed ---------------------- */
 
-function DelayedScreen({ scenario, results, metrics, onNext, isKids = false }) {
+function DelayedScreen({ scenario, results, isKids = false, onNext }) {
   const delayedText = results.skipped
     ? isKids
       ? "Zaman geçtikçe hiçbir karar almamanın bedeli ağırlaştı. Kriz daha uzun sürdü ve ülke yeni sorunlara karşı daha savunmasız hale geldi."
@@ -1325,9 +1389,11 @@ function EndScreen({
           🤝 Kamu Güveni: {trust.toFixed(1)}
         </div>
         <div style={styles.resultLine}>
-          💪 Dayanıklılık: {metrics.resilience.toFixed(1)}</div>
+          💪 Dayanıklılık: {metrics.resilience.toFixed(1)}
+        </div>
         <div style={styles.resultLine}>
-          😩 Uyum Yorgunluğu: {metrics.fatigue.toFixed(1)}</div>
+          😩 Uyum Yorgunluğu: {metrics.fatigue.toFixed(1)}
+        </div>
         <div style={styles.resultLine}>💰 Bütçe: {budget.toFixed(0)}</div>
         <div style={styles.resultLine}>👥 İnsan Kaynağı: {hr.toFixed(0)}</div>
       </div>
@@ -1529,6 +1595,15 @@ const styles = {
     border: "1px solid #38bdf8",
     color: "#e0f2fe",
     backgroundColor: "rgba(8,47,73,0.7)",
+  },
+  headerRestartButton: {
+    fontSize: 11,
+    padding: "4px 10px",
+    borderRadius: 999,
+    border: "1px solid #4b5563",
+    backgroundColor: "#020617",
+    color: "#e5e7eb",
+    cursor: "pointer",
   },
   mainRow: {
     display: "grid",

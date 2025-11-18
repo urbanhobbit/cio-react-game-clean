@@ -1,0 +1,73 @@
+{
+  "earthquake": {
+    "title": "Deprem Krizi",
+    "icon": "🏚️",
+    "story": "Adada sabah erken saatlerde güçlü bir deprem oldu. İnternetin bazı bölümlerde kesildiği, yardım bilgilerine herkesin ulaşamadığı ve sosyal medyada yanlış haberlerin yayıldığı görülüyor. Görev: Doğru bilgiyi hızla yaymak ve insanların güvende olmasını sağlamak.",
+    "advisors": [
+      {"name": "Güvenlik Görevlisi","text": "Yanlış haberleri azaltmak için sosyal medya akışını yavaşlatabiliriz. Böylece panik azalır ama bazı gençler kısıtlama hissedebilir."},
+      {"name": "Hukuk Danışmanı","text": "Geniş kısıtlama yerine acil yardım bilgilerinin herkes tarafından görülmesini sağlayalım. Bu daha adil bir yol olur."},
+      {"name": "Psikolojik Danışman","text": "Halkı sakinleştirecek bilgilendirici mesajlar paylaşalım. Bu güveni artırır."},
+      {"name": "Teknoloji Uzmanı","text": "Toplu SMS ile yardım noktalarını duyuralım. Hızlı ve etkili olur."}
+    ],
+    "action_cards": [
+      {"id": "A","name": "Sosyal Medyayı Yavaşlat","cost": 30,"hr_cost": 10,"speed": "fast","security_effect": 35,"freedom_cost": 20,"side_effect_risk": 0.3,"safeguard_reduction": 0.5,"tooltip": "Yanlış haber yayılımını azaltır ama özgürlük hissini düşürür."},
+      {"id": "B","name": "Platformlarla Uyum","cost": 20,"hr_cost": 8,"speed": "medium","security_effect": 22,"freedom_cost": 10,"side_effect_risk": 0.18,"safeguard_reduction": 0.6,"tooltip": "Doğru bilgiyi öne çıkarma ve yanlış haberleri etiketleme."},
+      {"id": "C","name": "Bilgilendirme Mesajları","cost": 10,"hr_cost": 6,"speed": "slow","security_effect": 12,"freedom_cost": 3,"side_effect_risk": 0.08,"safeguard_reduction": 0.8,"tooltip": "Sakinleştirici ve öğretici kamu mesajları paylaşma."}
+    ],
+    "immediate_text": "Seçimin uygulanıyor: {}. Bazı bölgelerde bilgi akışı düzeldi, insanlar daha sakin.",
+    "delayed_text": "Yanlış haberlerin etkisi azaldı, yardım dağıtımı düzene girdi. Bazı gençler kısıtlamalar hakkında tartışıyor."},
+
+  "forest_fire": {
+    "title": "Orman Yangını",
+    "icon": "🔥",
+    "story": "Adanın güneyinde büyük bir orman yangını çıktı. Sosyal medyada yanlış tahliye bilgileri paylaşılıyor. Görev: Gençlerin ve ailelerin doğru rotalara ulaşmasını sağlamak ve panik oluşmasını önlemek.",
+    "advisors": [
+      {"name": "Güvenlik Görevlisi","text": "Sahte tahliye rotalarını engellemek için geçici bölgesel kısıtlama uygulanabilir."},
+      {"name": "Hukuk Danışmanı","text": "Kısıtlama yapmak yerine resmi tahliye rotalarını görünür kılmak daha adil olur."},
+      {"name": "Öğretmen","text": "Gençlere güvenli davranışları anlatan kısa videolar hazırlayabiliriz."},
+      {"name": "Teknoloji Uzmanı","text": "Telefonlara acil uyarı göndermek etkili olur."}
+    ],
+    "action_cards": [
+      {"id": "A","name": "Yanlış Bilgiyi Kapat","cost": 25,"hr_cost": 10,"speed": "fast","security_effect": 30,"freedom_cost": 15,"side_effect_risk": 0.25,"safeguard_reduction": 0.5,"tooltip": "Sahte tahliye bilgilerini hızla durdurur ama özgürlük hissini azaltır."},
+      {"id": "B","name": "Uyarı Mesajları","cost": 20,"hr_cost": 8,"speed": "medium","security_effect": 24,"freedom_cost": 8,"side_effect_risk": 0.12,"safeguard_reduction": 0.6,"tooltip": "Doğru tahliye rotaları telefonlara gönderilir."},
+      {"id": "C","name": "Okul ve STK İşbirliği","cost": 10,"hr_cost": 5,"speed": "slow","security_effect": 10,"freedom_cost": 3,"side_effect_risk": 0.05,"safeguard_reduction": 0.8,"tooltip": "Gençlere bilgilendirici içerikler sunulur."}
+    ],
+    "immediate_text": "Seçimin devreye girdi: {}. Tahliyeler hızlandı, bazı gençler gecikmeleri tartışıyor.",
+    "delayed_text": "Yangın kontrol altına alındı; yanlış rotaların etkisi büyük ölçüde düştü."},
+
+  "pandemic": {
+    "title": "Salgın Dönemi",
+    "icon": "🏥",
+    "story": "Adada hızla yayılan bir hastalık ortaya çıktı. Sosyal medyada sahte tedaviler, komplo teorileri ve kafa karıştırıcı içerikler dolaşıyor. Görev: Gençlerin güvenilir bilgiye ulaşmasını sağlamak ve kurallara uyumu artırmak.",
+    "advisors": [
+      {"name": "Sağlık Uzmanı","text": "Riskli bölgeleri gösteren bir uyarı sistemi kurabiliriz."},
+      {"name": "Teknoloji Uzmanı","text": "Yanlış bilgileri işaretleyen bildirimler kullanabiliriz."},
+      {"name": "Hukuk Danışmanı","text": "Kısıtlamalar açık biçimde gerekçelendirilirse daha çok kabul görür."},
+      {"name": "Gençlik Çalışanı","text": "Gençlere yönelik kısa bilgilendirme videoları hazırlayabiliriz."}
+    ],
+    "action_cards": [
+      {"id": "A","name": "Risk Haritası","cost": 35,"hr_cost": 12,"speed": "fast","security_effect": 30,"freedom_cost": 18,"side_effect_risk": 0.22,"safeguard_reduction": 0.55,"tooltip": "Riskli bölgeler bildirilir; bazı gençler bunu fazla kontrolcü bulabilir."},
+      {"id": "B","name": "Yerel Bilgilendirme","cost": 20,"hr_cost": 10,"speed": "medium","security_effect": 20,"freedom_cost": 8,"side_effect_risk": 0.15,"safeguard_reduction": 0.6,"tooltip": "Mahallelerde bilgilendirme ağı kurulur."},
+      {"id": "C","name": "Kısa Eğitim Videoları","cost": 10,"hr_cost": 5,"speed": "slow","security_effect": 12,"freedom_cost": 3,"side_effect_risk": 0.05,"safeguard_reduction": 0.8,"tooltip": "Hastalıkla ilgili doğru bilgiler gençlere uygun biçimde anlatılır."}
+    ],
+    "immediate_text": "Seçimin uygulanıyor: {}. Bilgilendirme hızlandı; bazı bölgelerde erişim sıkıntısı devam ediyor.",
+    "delayed_text": "Yanlış bilgiler azaldı, gençler kurallara daha fazla uyuyor."},
+
+  "election": {
+    "title": "Seçim Dönemi",
+    "icon": "🗳️",
+    "story": "Seçim yaklaşırken sosyal medyada sahte videolar ve montaj içerikler dolaşıyor. Gençler kime güveneceğini bilemiyor. Görev: Gençlerin doğru bilgiye ulaşmasını sağlamak ve seçim güvenliğini korumak.",
+    "advisors": [
+      {"name": "Siyasal İletişim Uzmanı","text": "Sahte videolara uyarı etiketi eklemek kafa karışıklığını azaltır."},
+      {"name": "Öğretmen","text": "Gençlere doğru bilgiyi nasıl ayırt edeceklerini anlatan örnekler hazırlayalım."},
+      {"name": "Siber Güvenlik Uzmanı","text": "Yüz yüze bilgilendirme yapan gönüllü ekipler organize edebiliriz."},
+      {"name": "Hukuk Danışmanı","text": "Her karar şeffaf olursa gençler sansür şüphesi duymaz."}
+    ],
+    "action_cards": [
+      {"id": "A","name": "Sahte İçerik Uyarısı","cost": 25,"hr_cost": 10,"speed": "fast","security_effect": 28,"freedom_cost": 10,"side_effect_risk": 0.2,"safeguard_reduction": 0.55,"tooltip": "Sahte videolara açıklama etiketi ekleme."},
+      {"id": "B","name": "Doğru Bilgiyi Paylaş","cost": 20,"hr_cost": 8,"speed": "medium","security_effect": 18,"freedom_cost": 5,"side_effect_risk": 0.12,"safeguard_reduction": 0.65,"tooltip": "Gerçek konuşmaların ve doğrulanmış bilgilerin yayılması."},
+      {"id": "C","name": "Medya Okuryazarlığı","cost": 10,"hr_cost": 5,"speed": "slow","security_effect": 10,"freedom_cost": 2,"side_effect_risk": 0.05,"safeguard_reduction": 0.85,"tooltip": "Gençlere sahte içerikleri nasıl anlayacaklarını öğretme."}
+    ],
+    "immediate_text": "Seçimin uygulanıyor: {}. Bazı sahte videolar durduruldu, ancak tartışmalar sürüyor.",
+    "delayed_text": "Yanlış bilgilerin etkisi azaldı; gençler seçim sürecine daha güveniyor."}
+}
